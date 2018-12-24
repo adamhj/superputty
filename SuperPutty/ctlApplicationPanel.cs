@@ -232,7 +232,23 @@ DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
                     return;
                 }
 
-                DesktopWindow window = DesktopWindow.GetFirstDesktopWindow();
+                DesktopWindow window = null;
+                if (NativeMethods.GetForegroundWindow() == this.m_AppWin)
+                {
+                    StringBuilder strbTitle = new StringBuilder(255);
+                    int nLength = NativeMethods.GetWindowText(this.m_AppWin, strbTitle, strbTitle.Capacity + 1);
+                    string strTitle = strbTitle.ToString();
+                    uint pid;
+                    NativeMethods.GetWindowThreadProcessId(this.m_AppWin, out pid);
+                    Process process = Process.GetProcessById(Convert.ToInt32(pid));
+                    window = new DesktopWindow
+                    {
+                        Handle = this.m_AppWin,
+                        Title = strTitle,
+                        ProcessId = Convert.ToInt32(pid),
+                        Exe = process.MainModule.FileName
+                    };
+                }
                 this.m_windowActivator.ActivateForm(form, window, m_AppWin);
 
                 // focus back to putty via setting active dock panel
